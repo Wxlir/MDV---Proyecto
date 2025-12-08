@@ -21,13 +21,12 @@ public class Player : MonoBehaviour
     private bool isGrounded;
 
     private Vector3 initialPosition;
-    private bool initialPositionSaved = false;
 
     [Header("Health System")]
     [SerializeField] private int maxHealth = 100;
     private int currentHealth;
     private bool isDead = false;
-
+    
     [Header("UI References")]
     [SerializeField] private HealthBar healthBar; // Referencia a la barra de vida
 
@@ -35,13 +34,13 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponentInChildren<Animator>();
-
+        
         // Save initial position (the position set in the scene)
         initialPosition = transform.position;
 
         // Inicializar vida
         currentHealth = maxHealth;
-
+        
         // Actualizar barra de vida inicial
         if (healthBar != null)
         {
@@ -225,7 +224,7 @@ public class Player : MonoBehaviour
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
         Debug.Log($"Player took {damage} damage. Current health: {currentHealth}/{maxHealth}");
-
+        
         // Actualizar barra de vida
         if (healthBar != null)
         {
@@ -254,7 +253,7 @@ public class Player : MonoBehaviour
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
         Debug.Log($"Player healed {amount}. Current health: {currentHealth}/{maxHealth}");
-
+        
         // Actualizar barra de vida
         if (healthBar != null)
         {
