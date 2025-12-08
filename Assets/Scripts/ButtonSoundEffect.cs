@@ -12,7 +12,6 @@ public class ButtonSoundEffect : MonoBehaviour, IPointerEnterHandler, ISelectHan
     [SerializeField][Range(0f, 1f)] private float sfxVolume = 1f;
 
     private AudioSource audioSource;
-    private bool hasPlayedThisHover = false;
 
     private void Awake()
     {
