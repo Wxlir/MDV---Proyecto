@@ -23,13 +23,30 @@ public class Player : MonoBehaviour
     private Vector3 initialPosition;
     private bool initialPositionSaved = false;
 
+    [Header("Health System")]
+    [SerializeField] private int maxHealth = 100;
+    private int currentHealth;
+    private bool isDead = false;
+
+    [Header("UI References")]
+    [SerializeField] private HealthBar healthBar; // Referencia a la barra de vida
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponentInChildren<Animator>();
-        
+
         // Save initial position (the position set in the scene)
         initialPosition = transform.position;
+
+        // Inicializar vida
+        currentHealth = maxHealth;
+
+        // Actualizar barra de vida inicial
+        if (healthBar != null)
+        {
+            healthBar.SetHealthInstant(currentHealth, maxHealth);
+        }
     }
 
     private void Start()
@@ -65,16 +82,16 @@ public class Player : MonoBehaviour
     {
         transform.position = initialPosition;
         facingRight = true; // Reset facing direction to default
-        
+
         // Reset rotation if needed
         transform.rotation = Quaternion.identity;
-        
+
         // Reset velocity
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
         }
-        
+
         Debug.Log($"Player reset to initial position: {initialPosition}");
     }
 
@@ -87,15 +104,15 @@ public class Player : MonoBehaviour
         float posY = UnityEngine.PlayerPrefs.GetFloat("LastPlayerPosY");
         float posZ = UnityEngine.PlayerPrefs.GetFloat("LastPlayerPosZ");
         bool savedFacingRight = UnityEngine.PlayerPrefs.GetInt("LastPlayerFacingRight", 1) == 1;
-        
+
         transform.position = new Vector3(posX, posY, posZ);
-        
+
         // Restore facing direction
         if (savedFacingRight != facingRight)
         {
             Flip();
         }
-        
+
         Debug.Log("Player position restored from PlayerPrefs");
     }
 
@@ -109,7 +126,7 @@ public class Player : MonoBehaviour
         {
             // Restore player position
             transform.position = new Vector3(saveData.playerPositionX, saveData.playerPositionY, saveData.playerPositionZ);
-            
+
             // Restore facing direction
             if (saveData.facingRight != facingRight)
             {
@@ -123,6 +140,10 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        // Si está muerto, no hacer nada
+        if (isDead)
+            return;
+
         HandleCollision();
         HandleInput();
         HandleMovement();
@@ -189,5 +210,112 @@ public class Player : MonoBehaviour
         Gizmos.DrawLine(transform.position, transform.position + new Vector3(0, -groundCheckDistance));
     }
 
+    #region Health System
+
+    /// <summary>
+    /// Hace daño al jugador
+    /// </summary>
+    /// <param name="damage">Cantidad de daño a recibir</param>
+    public void TakeDamage(int damage)
+    {
+        if (isDead)
+            return;
+
+        currentHealth -= damage;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        Debug.Log($"Player took {damage} damage. Current health: {currentHealth}/{maxHealth}");
+
+        // Actualizar barra de vida
+        if (healthBar != null)
+        {
+            healthBar.UpdateHealth(currentHealth, maxHealth);
+        }
+
+        // Aquí puedes agregar efectos visuales, sonidos, etc.
+        // Por ejemplo: animación de daño, sonido de dolor
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    /// <summary>
+    /// Cura al jugador
+    /// </summary>
+    /// <param name="amount">Cantidad de vida a recuperar</param>
+    public void Heal(int amount)
+    {
+        if (isDead)
+            return;
+
+        currentHealth += amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        Debug.Log($"Player healed {amount}. Current health: {currentHealth}/{maxHealth}");
+
+        // Actualizar barra de vida
+        if (healthBar != null)
+        {
+            healthBar.UpdateHealth(currentHealth, maxHealth);
+        }
+    }
+
+    /// <summary>
+    /// Maneja la muerte del jugador
+    /// </summary>
+    private void Die()
+    {
+        isDead = true;
+        Debug.Log("Player has died!");
+
+        // Detener movimiento
+        rb.linearVelocity = Vector2.zero;
+
+        // Aquí puedes agregar:
+        // - Animación de muerte
+        // - Desactivar controles
+        // - Mostrar pantalla de Game Over
+        // - Reproducir sonido de muerte
+
+        // Ejemplo: anim.SetTrigger("Death");
+    }
+
+    /// <summary>
+    /// Revive al jugador (útil para respawn)
+    /// </summary>
+    public void Respawn()
+    {
+        isDead = false;
+        currentHealth = maxHealth;
+        Debug.Log("Player respawned!");
+    }
+
+    /// <summary>
+    /// Devuelve la vida actual del jugador
+    /// </summary>
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
+    }
+
+    /// <summary>
+    /// Devuelve la vida máxima del jugador
+    /// </summary>
+    public int GetMaxHealth()
+    {
+        return maxHealth;
+    }
+
+    /// <summary>
+    /// Devuelve si el jugador está muerto
+    /// </summary>
+    public bool IsDead()
+    {
+        return isDead;
+    }
+
+    #endregion
 
 }
